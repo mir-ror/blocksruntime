@@ -1,0 +1,5 @@
+libblocksruntime (0.0.104787-1) unstable; urgency=low
+
+  * Initial release (Closes: #584190)
+
+ -- Mark Heily <mark@heily.com>  Wed, 02 Jun 2010 22:17:11 -0400

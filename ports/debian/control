@@ -1,0 +1,35 @@
+Source: libblocksruntime
+Priority: extra
+Maintainer: Mark Heily <mark@heily.com>
+Build-Depends: debhelper (>= 7)
+Standards-Version: 3.8.3
+Section: libs
+Homepage: http://compiler-rt.llvm.org/
+
+Package: libblocksruntime-dev
+Section: libdevel
+Architecture: any
+Depends: libblocksruntime0 (= ${binary:Version}), ${misc:Depends}
+Description: Blocks Runtime (development files)
+ The compiler-rt project is a simple library that provides an
+ implementation of the low-level target-specific hooks required by code 
+ generation and other runtime components.
+ .
+ This package contains development headers for building software that
+ uses the BlocksRuntime component of compiler-rt.
+
+Package: libblocksruntime0
+Section: libs
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: library for the Blocks C extension
+ The compiler-rt project is a simple library that provides an
+ implementation of the low-level target-specific hooks required by code 
+ generation and other runtime components. For example, when compiling 
+ for a 32-bit target, converting a double to a 64-bit unsigned integer 
+ is compiling into a runtime call to the "__fixunsdfdi" function. The
+ compiler-rt library provides optimized implementations of this and 
+ other low-level routines.
+ .
+ This package contains a target-independent implementation of the 
+ Apple "Blocks" runtime interfaces.
