@@ -14,6 +14,9 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #
 
+# Build unsigned packages by default
+DPKG_BUILDFLAGS ?= -uc -us
+
 .PHONY :: install uninstall check dist dist-upload publish-www clean merge distclean fresh-build rpm edit cscope valgrind
 
 include config.mk
@@ -73,12 +76,12 @@ rpm: clean $(DISTFILE)
 deb: clean $(DISTFILE)
 	mkdir pkg
 	cd pkg && tar zxf ../$(DISTFILE) 
-	cp $(DISTFILE) pkg/$(PROGRAM)_$(VERSION).orig.tar.gz
+	cp $(DISTFILE) pkg/`echo $(PROGRAM)_$(VERSION) |tr A-Z a-z`.orig.tar.gz
 	cp -R ports/debian pkg/$(PROGRAM)-$(VERSION) 
 	cd pkg && \
 	rm -rf `find $(PROGRAM)-$(VERSION)/debian -type d -name .svn` ; \
 	perl -pi -e 's/\@\@VERSION\@\@/$(VERSION)/' $(PROGRAM)-$(VERSION)/debian/changelog ; \
-	cd $(PROGRAM)-$(VERSION) && dpkg-buildpackage -uc -us
+	cd $(PROGRAM)-$(VERSION) && dpkg-buildpackage $(DPKG_BUILDFLAGS)
 	lintian -i pkg/*.deb
 	@printf "\nThe following packages have been created:\n"
 	@find ./pkg -name '*.deb' | sed 's/^/    /'
