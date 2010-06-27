@@ -9,7 +9,7 @@ sources="runtime.c data.c"
 libdepends=""
 deps=""
 mans=""
-headers="*.h"
+headers="Block.h Block_private.h"
 extra_dist=""
 subdirs=""
 
@@ -18,9 +18,8 @@ pre_configure_hook() {
 }
 
 post_configure_hook() {
-  # FIXME - This is not a good idea...
+  # FIXME - Need to compile a test program to confirm these are available
   echo "
-#define HAVE_SYSCONF 1
 #define HAVE_SYNC_BOOL_COMPARE_AND_SWAP_INT 1
 #define HAVE_SYNC_BOOL_COMPARE_AND_SWAP_LONG 1" >> config.h
 }
