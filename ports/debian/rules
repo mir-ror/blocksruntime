@@ -6,7 +6,8 @@
 build: build-stamp
 build-stamp: 
 	dh_testdir
-	CFLAGS="" LDFLAGS="" ./configure --prefix=/usr --mandir=\$${prefix}/share/man
+	CC=clang CFLAGS="" LDFLAGS="" \
+        ./configure --prefix=/usr --mandir=\$${prefix}/share/man
 	$(MAKE)
 	touch $@
 
