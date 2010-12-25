@@ -13,6 +13,12 @@ headers="Block.h Block_private.h"
 extra_dist=""
 subdirs=""
 
+# Package metadata
+pkg_summary="Blocks Runtime library"
+pkg_description="Blocks Runtime library"
+license="LLVM"
+author="LLVM Development Team"
+
 pre_configure_hook() {
     return
 }
