@@ -62,8 +62,6 @@ make DESTDIR=%{buildroot} install
 
 /usr/lib/*.so
 /usr/include/*
-%exclude /usr/lib/*.la
-%exclude /usr/lib/*.a
 
 %changelog
 * @@RPM_DATE@@ Mark Heily <mark@heily.com> - @@VERSION@@-1
