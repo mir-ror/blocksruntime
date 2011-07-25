@@ -1,87 +1,61 @@
-#
-# Copyright (c) 2010 Mark Heily <mark@heily.com>
-#
-# Permission to use, copy, modify, and distribute this software for any
-# purpose with or without fee is hereby granted, provided that the above
-# copyright notice and this permission notice appear in all copies.
-# 
-# THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
-# WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
-# MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
-# ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
-# WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
-# ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
-# OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-#
+API=posix
+AR=/usr/bin/ar
+BINDIR=$(PREFIX)/bin
+CC=/usr/bin/cc
+CFLAGS=
+INCLUDEDIR=$(PREFIX)/include
+INSTALL=/usr/bin/install
+LDADD=
+LDFLAGS=
+LIBDIR=$(PREFIX)/lib
+LN=/bin/ln
+MANDIR=$(PREFIX)/share/man
+PREFIX=/usr/local
+SBINDIR=$(PREFIX)/sbin
+TAR=/bin/tar
+TARGET=linux
+VERSION=0.1
 
-# Build unsigned packages by default
-DPKG_BUILDFLAGS ?= -uc -us
+default: all
 
-.PHONY :: install uninstall check dist dist-upload publish-www clean merge distclean fresh-build rpm edit cscope valgrind
+all: libBlocksRuntime.so.0.0
 
-include config.mk
-
-all: $(PROGRAM).so
-
-%.o: %.c $(DEPS)
-	$(CC) -c -o $@ $(CFLAGS) $<
-
-$(PROGRAM).a: $(OBJS)
-	$(AR) rcs $(PROGRAM).a $(OBJS)
-
-$(PROGRAM).so: $(OBJS)
-	$(LD) $(LDFLAGS) $(OBJS) $(LDADD)
-	$(LN) -sf $(PROGRAM).so.$(ABI_VERSION) $(PROGRAM).so
-
-test-$(PROGRAM): *.c *.h
-	gcc $(CFLAGS) -g -O0 -o test-$(PROGRAM) *.c -lpthread
-
-install: $(PROGRAM).so
-	$(INSTALL) -d -m 755 $(INCLUDEDIR) $(LIBDIR)
-	$(INSTALL) -m 644 $(HEADERS) $(INCLUDEDIR)
-	$(INSTALL) -m 644 $(PROGRAM).so.$(ABI_VERSION) $(LIBDIR)
-	$(LN) -sf $(PROGRAM).so.$(ABI_VERSION) $(LIBDIR)/$(PROGRAM).so.$(ABI_MAJOR)
-	$(LN) -sf $(PROGRAM).so.$(ABI_VERSION) $(LIBDIR)/$(PROGRAM).so
-
-$(PROGRAM)-$(VERSION).tar.gz: 
-	mkdir $(PROGRAM)-$(VERSION)
-	cp  Makefile ChangeLog configure config.inc      \
-        $(SOURCES) $(HEADERS)   \
-        $(MANS) $(EXTRA_DIST)   \
-        $(PROGRAM)-$(VERSION)
-	tar zcf $(PROGRAM)-$(VERSION).tar.gz $(PROGRAM)-$(VERSION)
-	rm -rf $(PROGRAM)-$(VERSION)
-
-dist: $(PROGRAM)-$(VERSION).tar.gz
+check: all
 
 clean:
-	rm -f tags $(PROGRAM)-$(VERSION).tar.gz *.a $(OBJS) *.pc *.so *.so.* test-$(PROGRAM)
-	rm -rf pkg
+	rm -f libBlocksRuntime.so.0.0
+
+dist: all
+	rm -f libBlocksRuntime-0.1.tar.gz
+	rm -rf libBlocksRuntime-0.1
+	mkdir libBlocksRuntime-0.1
+	$(INSTALL) -m 755 configure libBlocksRuntime-0.1
+	$(INSTALL) -m 644 config.yaml libBlocksRuntime-0.1
+	$(INSTALL) -m 644 runtime.c data.c libBlocksRuntime-0.1
+	$(INSTALL) -m 644 Block.h Block_private.h libBlocksRuntime-0.1
+	$(INSTALL) -m 644 ChangeLog libBlocksRuntime-0.1
+	tar cf libBlocksRuntime-0.1.tar libBlocksRuntime-0.1
+	gzip libBlocksRuntime-0.1.tar
+	rm -rf libBlocksRuntime-0.1
 
 distclean: clean
-	rm -f *.tar.gz config.mk config.h $(PROGRAM).pc $(PROGRAM).la rpm.spec
-	rm -rf $(PROGRAM)-$(VERSION) 2>/dev/null || true
+	rm -f Makefile config.h
 
-rpm: clean $(DISTFILE)
-	rm -rf rpm *.rpm *.deb
-	mkdir -p rpm/BUILD rpm/RPMS rpm/SOURCES rpm/SPECS rpm/SRPMS
-	mkdir -p rpm/RPMS/i386 rpm/RPMS/x86_64
-	cp $(DISTFILE) rpm/SOURCES 
-	rpmbuild -bb rpm.spec
-	mv ./rpm/RPMS/* .
-	rm -rf rpm
-	rmdir i386 x86_64    # WORKAROUND: These aren't supposed to exist
-	fakeroot alien --scripts *.rpm
+install: all
+	$(INSTALL) -m 644 libBlocksRuntime.so.0.0 $(DESTDIR)$(LIBDIR)
+	$(LN) -sf libBlocksRuntime.so.0.0 $(DESTDIR)$(LIBDIR)/libBlocksRuntime.so.0
+	$(LN) -sf libBlocksRuntime.so.0.0 $(DESTDIR)$(LIBDIR)/libBlocksRuntime.so
+	$(INSTALL) -m 644 Block.h $(DESTDIR)$(INCLUDEDIR)
+	$(INSTALL) -m 644 Block_private.h $(DESTDIR)$(INCLUDEDIR)
 
-deb: clean $(DISTFILE)
-	mkdir pkg
-	cd pkg && tar zxf ../$(DISTFILE) 
-	cp $(DISTFILE) pkg/`echo $(PROGRAM)_$(VERSION) |tr A-Z a-z`.orig.tar.gz
-	cp -R ports/debian pkg/$(PROGRAM)-$(VERSION) 
-	cd pkg && \
-	rm -rf `find $(PROGRAM)-$(VERSION)/debian -type d -name .svn` ; \
-	perl -pi -e 's/\@\@VERSION\@\@/$(VERSION)/' $(PROGRAM)-$(VERSION)/debian/changelog ; \
-	cd $(PROGRAM)-$(VERSION) && dpkg-buildpackage $(DPKG_BUILDFLAGS)
-	lintian -i pkg/*.deb
-	@printf "\nThe following packages have been created:\n"
-	@find ./pkg -name '*.deb' | sed 's/^/    /'
+libBlocksRuntime.so.0.0: runtime.c data.c
+	$(CC) -o $@ -DBlocksRuntime_EXPORTS -DHAVE_SYNC_BOOL_COMPARE_AND_SWAP_INT -DHAVE_SYNC_BOOL_COMPARE_AND_SWAP_LONG -std=c99 -Wall -Wextra -W -pedantic -Wno-unused-parameter -shared -fPIC -fwhole-program $(LDFLAGS) runtime.c data.c $(LDADD)
+
+package: all
+
+uninstall:
+	rm $(DESTDIR)$(LIBDIR)/libBlocksRuntime.so.0.0
+	rm $(DESTDIR)$(LIBDIR)/libBlocksRuntime.so.0
+	rm $(DESTDIR)$(LIBDIR)/libBlocksRuntime.so
+	rm $(DESTDIR)$(INCLUDEDIR)/Block.h
+	rm $(DESTDIR)$(INCLUDEDIR)/Block_private.h
