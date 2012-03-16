@@ -139,9 +139,6 @@ static void _Block_assign_default(void *value, void **destptr) {
     *destptr = value;
 }
 
-static void _Block_setHasRefcount_default(const void *ptr, const bool hasRefcount) {
-}
-
 static void _Block_retain_object_default(const void *ptr) {
     if (!ptr) return;
 }
@@ -166,7 +163,6 @@ static void _Block_memmove_default(void *dst, void *src, unsigned long size) {
 static void *(*_Block_allocator)(const unsigned long, const bool isOne, const bool isObject) = _Block_alloc_default;
 static void (*_Block_deallocator)(const void *) = (void (*)(const void *))free;
 static void (*_Block_assign)(void *value, void **destptr) = _Block_assign_default;
-static void (*_Block_setHasRefcount)(const void *ptr, const bool hasRefcount) = _Block_setHasRefcount_default;
 static void (*_Block_retain_object)(const void *ptr) = _Block_retain_object_default;
 static void (*_Block_release_object)(const void *ptr) = _Block_release_object_default;
 static void (*_Block_assign_weak)(const void *dest, void *ptr) = _Block_assign_weak_default;
@@ -185,7 +181,6 @@ static void (*_Block_memmove)(void *dest, void *src, unsigned long size) = _Bloc
 /* Copy, or bump refcount, of a block.  If really copying, call the copy helper if present. */
 static void *_Block_copy_internal(const void *arg, const int flags) {
     struct Block_layout *aBlock;
-    const bool wantsOne = (WANTS_ONE & flags) == WANTS_ONE;
 
     //printf("_Block_copy_internal(%p, %x)\n", arg, flags);	
     if (!arg) return NULL;
@@ -196,14 +191,6 @@ static void *_Block_copy_internal(const void *arg, const int flags) {
     if (aBlock->flags & BLOCK_NEEDS_FREE) {
         // latches on high
         latching_incr_int(&aBlock->flags);
-        return aBlock;
-    }
-    else if (aBlock->flags & BLOCK_IS_GC) {
-        // GC refcounting is expensive so do most refcounting here.
-        if (wantsOne && ((latching_incr_int(&aBlock->flags) & BLOCK_REFCOUNT_MASK) == 1)) {
-            // Tell collector to hang on this - it will bump the GC refcount version
-            _Block_setHasRefcount(aBlock, true);
-        }
         return aBlock;
     }
     else if (aBlock->flags & BLOCK_IS_GLOBAL) {
@@ -328,13 +315,7 @@ void __attribute__((weak)) _Block_release(void *arg) {
     newCount = latching_decr_int(&aBlock->flags) & BLOCK_REFCOUNT_MASK;
     if (newCount > 0) return;
     // Hit zero
-    if (aBlock->flags & BLOCK_IS_GC) {
-        // Tell GC we no longer have our own refcounts.  GC will decr its refcount
-        // and unless someone has done a CFRetain or marked it uncollectable it will
-        // now be subject to GC reclamation.
-        _Block_setHasRefcount(aBlock, false);
-    }
-    else if (aBlock->flags & BLOCK_NEEDS_FREE) {
+    if (aBlock->flags & BLOCK_NEEDS_FREE) {
         if (aBlock->flags & BLOCK_HAS_COPY_DISPOSE)(*aBlock->descriptor->dispose)(aBlock);
         _Block_deallocator(aBlock);
     }
