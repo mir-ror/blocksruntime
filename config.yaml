@@ -10,7 +10,7 @@ libraries:
         abi_major: 0
         abi_minor: 0
         cflags: "-DBlocksRuntime_EXPORTS -DHAVE_SYNC_BOOL_COMPARE_AND_SWAP_INT=1 -DHAVE_SYNC_BOOL_COMPARE_AND_SWAP_LONG=1 -std=c99 -Wall -Wextra -W -pedantic -Wno-unused-parameter"
-        sources: [ runtime.c ]
+        sources: [ runtime.c, data.c ]
 
 package:
     summary: "Blocks Runtime library"
