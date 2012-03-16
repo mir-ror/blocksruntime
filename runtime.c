@@ -315,13 +315,13 @@ static void _Block_byref_release(const void *arg) {
 #pragma mark SPI/API
 #endif /* if 0 */
 
-void *_Block_copy(const void *arg) {
+void * __attribute__((weak)) _Block_copy(const void *arg) {
     return _Block_copy_internal(arg, WANTS_ONE);
 }
 
 
 // API entry point to release a copied Block
-void _Block_release(void *arg) {
+void __attribute__((weak)) _Block_release(void *arg) {
     struct Block_layout *aBlock = (struct Block_layout *)arg;
     int32_t newCount;
     if (!aBlock) return;
@@ -368,14 +368,8 @@ static void _Block_destroy(const void *arg) {
  *
  */
 
-// SPI, also internal.  Called from NSAutoBlock only under GC
-void *_Block_copy_collectable(const void *aBlock) {
-    return _Block_copy_internal(aBlock, 0);
-}
-
-
 // SPI
-unsigned long int Block_size(void *arg) {
+unsigned long int __attribute__((weak)) Block_size(void *arg) {
     return ((struct Block_layout *)arg)->descriptor->size;
 }
 
@@ -422,7 +416,7 @@ The implementation of the two routines would be improved by switch statements en
  * When Blocks or Block_byrefs hold objects then their copy routine helpers use this entry point
  * to do the assignment.
  */
-void _Block_object_assign(void *destAddr, const void *object, const int flags) {
+void  __attribute__((weak)) _Block_object_assign(void *destAddr, const void *object, const int flags) {
     //printf("_Block_object_assign(*%p, %p, %x)\n", destAddr, object, flags);
     if ((flags & BLOCK_BYREF_CALLER) == BLOCK_BYREF_CALLER) {
         if ((flags & BLOCK_FIELD_IS_WEAK) == BLOCK_FIELD_IS_WEAK) {
@@ -455,7 +449,7 @@ void _Block_object_assign(void *destAddr, const void *object, const int flags) {
 // When Blocks or Block_byrefs hold objects their destroy helper routines call this entry point
 // to help dispose of the contents
 // Used initially only for __attribute__((NSObject)) marked pointers.
-void _Block_object_dispose(const void *object, const int flags) {
+void __attribute__((weak)) _Block_object_dispose(const void *object, const int flags) {
     //printf("_Block_object_dispose(%p, %x)\n", object, flags);
     if (flags & BLOCK_FIELD_IS_BYREF)  {
         // get rid of the __block data structure held in a Block
@@ -482,7 +476,7 @@ void _Block_object_dispose(const void *object, const int flags) {
 #endif /* if 0 */
 
 
-const char *_Block_dump(const void *block) {
+const char * __attribute__((weak)) _Block_dump(const void *block) {
     struct Block_layout *closure = (struct Block_layout *)block;
     static char buffer[512];
     char *cp = buffer;
@@ -528,7 +522,7 @@ const char *_Block_dump(const void *block) {
 }
 
 
-const char *_Block_byref_dump(struct Block_byref *src) {
+const char *  __attribute__((weak)) _Block_byref_dump(struct Block_byref *src) {
     static char buffer[256];
     char *cp = buffer;
     cp += sprintf(cp, "byref data block %p contents:\n", (void *)src);
