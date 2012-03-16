@@ -91,25 +91,9 @@ static const int _Byref_flag_initial_value = BLOCK_NEEDS_FREE | 2;
 
 static const int WANTS_ONE = (1 << 16);
 
-static const bool isGC = false;
-
 /*
  * Internal Utilities:
  */
-
-#if 0
-static unsigned long int latching_incr_long(unsigned long int *where) {
-    while (1) {
-        unsigned long int old_value = *(volatile unsigned long int *)where;
-        if ((old_value & BLOCK_REFCOUNT_MASK) == BLOCK_REFCOUNT_MASK) {
-            return BLOCK_REFCOUNT_MASK;
-        }
-        if (OSAtomicCompareAndSwapLong(old_value, old_value+1, (volatile long int *)where)) {
-            return old_value+1;
-        }
-    }
-}
-#endif /* if 0 */
 
 static int latching_incr_int(int *where) {
     while (1) {
@@ -122,23 +106,6 @@ static int latching_incr_int(int *where) {
         }
     }
 }
-
-#if 0
-static int latching_decr_long(unsigned long int *where) {
-    while (1) {
-        unsigned long int old_value = *(volatile int *)where;
-        if ((old_value & BLOCK_REFCOUNT_MASK) == BLOCK_REFCOUNT_MASK) {
-            return BLOCK_REFCOUNT_MASK;
-        }
-        if ((old_value & BLOCK_REFCOUNT_MASK) == 0) {
-            return 0;
-        }
-        if (OSAtomicCompareAndSwapLong(old_value, old_value-1, (volatile long int *)where)) {
-            return old_value-1;
-        }
-    }
-}
-#endif /* if 0 */
 
 static int latching_decr_int(int *where) {
     while (1) {
