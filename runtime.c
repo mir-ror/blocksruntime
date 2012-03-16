@@ -228,10 +228,7 @@ static void _Block_byref_assign_copy(void *dest, const void *arg, const int flag
         
     //printf("_Block_byref_assign_copy called, byref destp %p, src %p, flags %x\n", destp, src, flags);
     //printf("src dump: %s\n", _Block_byref_dump(src));
-    if (src->forwarding->flags & BLOCK_IS_GC) {
-        ;   // don't need to do any more work
-    }
-    else if ((src->forwarding->flags & BLOCK_REFCOUNT_MASK) == 0) {
+    if ((src->forwarding->flags & BLOCK_REFCOUNT_MASK) == 0) {
         //printf("making copy\n");
         // src points to stack
         struct Block_byref *copy = (struct Block_byref *)_Block_allocator(src->size, false, false);
@@ -334,10 +331,6 @@ static void _Block_destroy(const void *arg) {
     struct Block_layout *aBlock;
     if (!arg) return;
     aBlock = (struct Block_layout *)arg;
-    if (aBlock->flags & BLOCK_IS_GC) {
-        // assert(aBlock->Block_flags & BLOCK_HAS_CTOR);
-        return; // ignore, we are being called because of a DTOR
-    }
     _Block_release(aBlock);
 }
 
