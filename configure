@@ -39,7 +39,7 @@ project.add(
   Header.new( :id => 'headers', :sources => %w{ Block.h Block_private.h } ),
   Test.new(
     :id => 'blktest', 
-    :cflags => '-fblocks',
+    :cflags => '-I. -fblocks',
     :sources => %w{test/main.c},
     :ldadd => 'libBlocksRuntime.a'
   )
