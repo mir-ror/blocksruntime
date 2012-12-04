@@ -15,7 +15,6 @@
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #
 
-$VERBOSE = true
 $LOAD_PATH << 'makeconf'
 
 require 'makeconf'
@@ -45,12 +44,13 @@ project.add(
   )
 )
 
-# Require the use of an unofficial Clang 3.2-based toolchain for Android.
+# Require the use of an unofficial Clang toolchain for Android.
 if SystemType.host =~ /-androideabi$/
-  project.ndk_toolchain_version = '3.2'
+  project.ndk_toolchain_version = 'clang3.1'
 end
 
-Makeconf.configure(project)
+mc = Makeconf.new
+mc.configure(project)
 
 
 #package:
