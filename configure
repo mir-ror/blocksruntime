@@ -25,7 +25,7 @@ cc = CCompiler.new(
 
 project = Project.new(
   :id => 'libBlocksRuntime',
-  :version => '0.2',
+  :version => '0.3',
   :cc => cc
 )
 
