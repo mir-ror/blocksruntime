@@ -1,3 +1,7 @@
+UNRELEASED      Mark Heily      <mark@heily.com>
+
+    * Merge code from the objc2 branch @r29 back into trunk.
+
 2012-11-04      Mark Heily      <mark@heily.com>
 
     * Migrate SVN repository to sourceforge.net
